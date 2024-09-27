@@ -1,0 +1,7 @@
+workflow:
+  rbac:
+    serviceAccounts:
+      - name: default
+        namespace: default
+      - name: default
+        namespace: argo
