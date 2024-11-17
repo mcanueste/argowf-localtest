@@ -1,5 +1,10 @@
 terraform {
   required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "3.0.2"
+    }
+
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "2.32.0"
@@ -12,13 +17,19 @@ terraform {
   }
 }
 
+provider "docker" {
+  host = "unix:///var/run/docker.sock"
+}
+
 provider "kubernetes" {
-  config_path    = local.kubeconfig_path
-  config_context = "kind-${local.cluster_name}"
+  config_path    = "~/.kube/config"
+  config_context = "k3d-argo"
 }
 
 provider "helm" {
   kubernetes {
-    config_path = local.kubeconfig_path
+    config_path    = "~/.kube/config"
+    config_context = "k3d-argo"
   }
 }
+

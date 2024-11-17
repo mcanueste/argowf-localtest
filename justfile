@@ -2,39 +2,31 @@
 default:
   @just --list
 
-# Create the KinD cluster
-create-kind-cluster:
-  cd terraform/kind && terraform init && terraform apply -auto-approve
+# Create the k3d cluster
+create-cluster:
+  k3d cluster create argo || k3d cluster start argo
 
-# Destroy the KinD cluster
-delete-kind-cluster:
-  cd terraform/kind && terraform destroy -auto-approve
+# Destroy the k3d cluster
+delete-cluster:
+  k3d cluster delete argo
 
-# Export KUBECONFIG for the KinD cluster
-export-kubeconfig:
-  export KUBECONFIG="/tmp/kubeconfig"
+port-forward-server:
+  @kubectl -n argo port-forward service/argo-workflows-server 2746:2746
+
+port-forward-artifacts:
+  @kubectl -n argo-artifacts port-forward service/argo-artifacts-console 9001:9001
 
 # Install argo-workflows
 install-argo-workflows:
   cd terraform/argo-workflows && terraform init && terraform apply -auto-approve
-
-# Install argo-workflows in HA mode
-install-argo-workflows-ha:
-  cd terraform/argo-workflows && terraform init && terraform apply -auto-approve -var "ha=true"
 
 # Uninstall argo-workflows
 uninstall-argo-workflows:
   cd terraform/argo-workflows && terraform destroy -auto-approve
 
 # Setup local cluster
-setup: create-kind-cluster install-argo-workflows export-kubeconfig
-
-# Setup local cluster in HA mode
-setup-ha: create-kind-cluster install-argo-workflows-ha export-kubeconfig
+setup: create-cluster install-argo-workflows
+# port-forward
 
 # Teardown local cluster
-teardown: uninstall-argo-workflows delete-kind-cluster
-
-port-forward:
-  @echo "https://localhost:2746"
-  @kubectl -n argo port-forward service/argo-workflows-server 2746:2746
+teardown: uninstall-argo-workflows delete-cluster
